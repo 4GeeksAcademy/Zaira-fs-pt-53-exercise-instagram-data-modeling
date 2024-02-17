@@ -7,26 +7,63 @@ from eralchemy2 import render_er
 
 Base = declarative_base()
 
-class Person(Base):
-    __tablename__ = 'person'
+class Follow(Base):
+    __tablename__ = 'follow'
+    id = Column(Integer, primary_key=True)
+    follower_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    followed_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+
+class User(Base):
+    __tablename__ = 'user'
     # Here we define columns for the table person
-    # Notice that each column is also a normal Python instance attribute.
+    # each column is also a normal Python instance attribute.
     id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False)
+    username = Column(String(80), unique=True, nullable=False)
+    email = Column(String(120), unique=True, nullable=False)
+    password = Column(String(20), nullable=False)  
+    profile_picture = Column(String(255))  # URL or path to the profile picture
+    profile_description = Column(String(240))
+    posts = relationship('Post', backref='user', lazy=True) # lazy = will not be loaded from the database until you explicitly request them.
+    comments = relationship('Comment', backref='user', lazy=True) # backref is a way to establish a bidirectional relationship between two models. 
+    liked_posts = relationship('likes', backref='user', lazy=True)
+    followers = relationship('Follow', foreign_keys=[Follow.followed_id], backref='followed_user', lazy='dynamic')
+    following = relationship('Follow', foreign_keys=[Follow.follower_id], backref='follower_user', lazy='dynamic')
 
-class Address(Base):
-    __tablename__ = 'address'
-    # Here we define columns for the table address.
-    # Notice that each column is also a normal Python instance attribute.
+class Post(Base):
+    __tablename__ = 'post'
     id = Column(Integer, primary_key=True)
-    street_name = Column(String(250))
-    street_number = Column(String(250))
-    post_code = Column(String(250), nullable=False)
-    person_id = Column(Integer, ForeignKey('person.id'))
-    person = relationship(Person)
+    caption = Column(String(240))
+    image_url = Column(String(255), nullable=False)
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    comments = relationship('Comment', backref='post', lazy=True)
+    liked_posts = relationship('likes', backref='post', lazy=True)
+    tags = relationship('Tag', secondary='post_tag', backref='posts')
 
-    def to_dict(self):
-        return {}
+class Tag(Base):
+    __tablename__ = 'tag'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(50), unique=True, nullable=False)
+
+class PostTag(Base):
+    __tablename__ = 'post_tag'
+    post_id = Column(Integer, ForeignKey('post.id'), primary_key=True)
+    tag_id = Column(Integer, ForeignKey('tag.id'), primary_key=True)
+
+
+class Comment(Base):
+    __tablename__ = 'comment'
+    id = Column(Integer, primary_key=True)
+    text = Column(String(240), nullable=False)
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    post_id = Column(Integer, ForeignKey('post.id'), nullable=False)
+
+class Likes(Base):
+    __tablename__ = 'likes'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    post_id = Column(Integer, ForeignKey('post.id'), nullable=False)
+
+
 
 ## Draw from SQLAlchemy base
 try:
