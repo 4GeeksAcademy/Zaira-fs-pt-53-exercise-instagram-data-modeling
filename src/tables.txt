@@ -1,0 +1,46 @@
+# Table definitions in app.quickdatabase.Comment
+# ver en assets/quickDBD imagen con tablas
+User
+-----
+id int, PK
+username varchar(80) unique
+email varchar(120) unique
+password varchar(20)
+profile_picture varchar(255)
+profile_description varchar(240)
+
+Follow
+------
+id int, PK
+follower_id int, FK >- User.id 
+followed_id int, FK >- User.id 
+
+Post
+----
+id int, PK
+caption varchar(240)
+image_url varchar(255)
+user_id int, FK >- User.id
+
+Tag
+---
+id int, PK
+name varchar(50) unique
+
+PostTag
+-------
+post_id int, FK >- Post.id
+tag_id int, FK >- Tag.id
+
+Comment
+-------
+id int, PK
+text varchar(240)
+user_id int, FK >- User.id 
+post_id int, FK >- Post.id 
+
+Likes
+-----
+id int, PK
+user_id int, FK >- User.id
+post_id int, FK >- Post.id
